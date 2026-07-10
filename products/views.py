@@ -2,20 +2,32 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
-
+from django.db.models import Q
 from .models import Product, Category
 from .serializers import ProductSerializer, CategorySerializer
 
+
+from django.core.paginator import Paginator
 
 @api_view(['GET'])
 def product_list(request):
 
     products = Product.objects.all()
 
-    serializer = ProductSerializer(products, many=True)
+    category = request.GET.get("category")
+
+    if category:
+        products = products.filter(category_id=category)
+
+    paginator = Paginator(products, 10)
+
+    page = request.GET.get("page")
+
+    page_obj = paginator.get_page(page)
+
+    serializer = ProductSerializer(page_obj, many=True)
 
     return Response(serializer.data)
-
 
 @api_view(['GET'])
 def product_detail(request, id):
@@ -156,3 +168,16 @@ def delete_category(request, id):
         {"message": "Category deleted successfully"},
         status=status.HTTP_200_OK
     )  
+@api_view(['GET'])
+def search_products(request):
+
+    query = request.GET.get("q")
+
+    products = Product.objects.filter(
+        Q(name__icontains=query) |
+        Q(description__icontains=query)
+    )
+
+    serializer = ProductSerializer(products, many=True)
+
+    return Response(serializer.data)        

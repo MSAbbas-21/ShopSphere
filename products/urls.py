@@ -10,6 +10,7 @@ from .views import (
     create_category,
     update_category,
     delete_category,
+    search_products,
 )
 
 urlpatterns = [
@@ -20,6 +21,7 @@ urlpatterns = [
     path('<int:id>/', product_detail),
     path('update/<int:id>/', update_product),
     path('delete/<int:id>/', delete_product),
+    path("search/", search_products),
 
     # Category APIs
     path('categories/', category_list),
